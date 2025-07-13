@@ -1,1 +1,64 @@
-<p>monitoreo works!</p>
+<div class="monitoreo-container">
+  <h1>Dashboard de Monitoreo del Cultivo</h1>
+
+  <div class="header-acciones">
+    <button (click)="recolectarDatos()" [disabled]="isLoading" class="btn-recolectar">
+      <span *ngIf="!isLoading">Recolectar Datos de Sensores</span>
+      <span *ngIf="isLoading">Recolectando datos...</span>
+    </button>
+  </div>
+
+  <div *ngIf="isLoading" class="cargando-box">
+    <p>Cargando información de los sensores, por favor espera...</p>
+    <div class="spinner"></div>
+  </div>
+
+  <div *ngIf="!isLoading">
+    <div class="estado-general">
+      <h2>Estado General del Cultivo: <span [class.optimo]="monitoreoData.estadoGeneral === 'Óptimo'" [class.alerta]="monitoreoData.alertaActiva && monitoreoData.estadoGeneral === 'Alerta'">{{ monitoreoData.estadoGeneral }}</span></h2>
+      <div *ngIf="monitoreoData.alertaActiva" class="alerta-box">
+        <p>⚠️ **Alerta Activa:** {{ monitoreoData.mensajeAlerta }}</p>
+      </div>
+      <div *ngIf="!monitoreoData.alertaActiva && monitoreoData.estadoGeneral === 'Sin datos'" class="info-box">
+        <p>{{ monitoreoData.mensajeAlerta }}</p>
+      </div>
+    </div>
+
+    <div class="seccion-datos" *ngIf="monitoreoData.datos_suelos.humedadSuelo !== null">
+      <div class="columna-datos">
+        <h2>Datos del Suelo</h2>
+        <p><strong>Humedad del Suelo:</strong> {{ monitoreoData.datos_suelos.humedadSuelo | number:'1.1-1' }}%</p>
+        <p>
+          <strong>pH del Suelo:</strong> {{ monitoreoData.datos_suelos.phSuelo | number:'1.1-1' }}
+          <span class="ph-clasificacion">({{ getPhClasificacion(monitoreoData.datos_suelos.phSuelo) }})</span>
+        </p>
+        <p><strong>Salinidad del Suelo (CE):</strong> {{ monitoreoData.datos_suelos.salinidadSuelo | number:'1.1-1' }} dS/m</p>
+        <p><strong>Temperatura del Suelo:</strong> {{ monitoreoData.datos_suelos.temperaturaSuelo | number:'1.1-1' }}°C</p>
+
+        <h3>Niveles de Nutrientes</h3>
+        <ul>
+          <li><strong>Nitrógeno (N):</strong> {{ monitoreoData.datos_suelos.nutrientes.nitrogeno ?? 'N/A' }} ppm</li>
+          <li><strong>Fósforo (P):</strong> {{ monitoreoData.datos_suelos.nutrientes.fosforo ?? 'N/A' }} ppm</li>
+          <li><strong>Potasio (K):</strong> {{ monitoreoData.datos_suelos.nutrientes.potasio ?? 'N/A' }} ppm</li>
+          <li><strong>Calcio (Ca):</strong> {{ monitoreoData.datos_suelos.nutrientes.calcio ?? 'N/A' }} ppm</li>
+          <li><strong>Magnesio (Mg):</strong> {{ monitoreoData.datos_suelos.nutrientes.magnesio ?? 'N/A' }} ppm</li>
+        </ul>
+      </div>
+
+      <div class="columna-datos">
+        <h2>Datos Ambientales</h2>
+        <p><strong>Temperatura del Aire:</strong> {{ monitoreoData.datos_ambiente.temperaturaAire | number:'1.1-1' }}°C</p>
+        <p><strong>Humedad Relativa del Aire:</strong> {{ monitoreoData.datos_ambiente.humedadAire | number:'1.1-1' }}%</p>
+        <p><strong>Presión Atmosférica:</strong> {{ monitoreoData.datos_ambiente.presionAtmosferica ?? 'N/A' }} hPa</p>
+        <p><strong>Velocidad del Viento:</strong> {{ monitoreoData.datos_ambiente.velocidadViento ?? 'N/A' }} km/h</p>
+        <p><strong>Dirección del Viento:</strong> {{ monitoreoData.datos_ambiente.direccionViento ?? 'N/A' }}</p>
+        <p><strong>Precipitación Hoy:</strong> {{ monitoreoData.datos_ambiente.precipitacionHoy ?? 'N/A' }} mm</p>
+        <p><strong>Radiación Solar:</strong> {{ monitoreoData.datos_ambiente.radiacionSolar ?? 'N/A' }} W/m²</p>
+      </div>
+    </div>
+
+    <p class="ultima-actualizacion" *ngIf="ultimaActualizacion !== null">
+      Última actualización: {{ ultimaActualizacion | date:'medium' }}
+    </p>
+  </div>
+</div>

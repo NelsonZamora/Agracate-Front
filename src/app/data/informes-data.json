@@ -1,0 +1,142 @@
+{
+  "1": {
+    "datos_suelos": {
+      "humedadSuelo": 68.5,
+      "phSuelo": 6.3,
+      "salinidadSuelo": 0.9,
+      "temperaturaSuelo": 27.8,
+      "nutrientes": {
+        "nitrogeno": 80,
+        "fosforo": 45,
+        "potasio": 95,
+        "calcio": 130,
+        "magnesio": 65
+      }
+    },
+    "datos_ambiente": {
+      "temperaturaAire": 29.5,
+      "humedadAire": 85,
+      "presionAtmosferica": 1010,
+      "velocidadViento": 12,
+      "direccionViento": "SE",
+      "precipitacionHoy": 3.5,
+      "radiacionSolar": 850
+    },
+    "estadoGeneral": "Óptimo",
+    "alertaActiva": false,
+    "fecha_creacion": "2024-07-24",
+    "mensajeAlerta": "No se han detectado alertas significativas."
+  },
+  "2": {
+    "datos_suelos": {
+      "humedadSuelo": 55.0,
+      "phSuelo": 5.8,
+      "salinidadSuelo": 1.2,
+      "temperaturaSuelo": 26.0,
+      "nutrientes": {
+        "nitrogeno": 60,
+        "fosforo": 30,
+        "potasio": 70,
+        "calcio": 100,
+        "magnesio": 50
+      }
+    },
+    "datos_ambiente": {
+      "temperaturaAire": 28.0,
+      "humedadAire": 78,
+      "presionAtmosferica": 1015,
+      "velocidadViento": 8,
+      "direccionViento": "E",
+      "precipitacionHoy": 0.0,
+      "radiacionSolar": 700
+    },
+    "estadoGeneral": "Alerta",
+    "alertaActiva": true,
+    "fecha_creacion": "2024-07-23",
+    "mensajeAlerta": "¡Alerta: Humedad del suelo baja! Requiere riego."
+  },
+  "3": {
+    "datos_suelos": {
+      "humedadSuelo": 75.0,
+      "phSuelo": 6.8,
+      "salinidadSuelo": 0.7,
+      "temperaturaSuelo": 29.0,
+      "nutrientes": {
+        "nitrogeno": 90,
+        "fosforo": 50,
+        "potasio": 100,
+        "calcio": 140,
+        "magnesio": 70
+      }
+    },
+    "datos_ambiente": {
+      "temperaturaAire": 31.0,
+      "humedadAire": 90,
+      "presionAtmosferica": 1008,
+      "velocidadViento": 5,
+      "direccionViento": "S",
+      "precipitacionHoy": 10.0,
+      "radiacionSolar": 900
+    },
+    "estadoGeneral": "Óptimo",
+    "alertaActiva": false,
+    "fecha_creacion": "2024-07-22",
+    "mensajeAlerta": "Condiciones climáticas excelentes."
+  },
+  "4": {
+    "datos_suelos": {
+      "humedadSuelo": 60.0,
+      "phSuelo": 5.9,
+      "salinidadSuelo": 1.0,
+      "temperaturaSuelo": 27.0,
+      "nutrientes": {
+        "nitrogeno": 70,
+        "fosforo": 35,
+        "potasio": 80,
+        "calcio": 110,
+        "magnesio": 55
+      }
+    },
+    "datos_ambiente": {
+      "temperaturaAire": 29.0,
+      "humedadAire": 80,
+      "presionAtmosferica": 1012,
+      "velocidadViento": 10,
+      "direccionViento": "O",
+      "precipitacionHoy": 0.0,
+      "radiacionSolar": 750
+    },
+    "estadoGeneral": "Advertencia",
+    "alertaActiva": true,
+    "fecha_creacion": "2024-07-21",
+    "mensajeAlerta": "Advertencia: Niveles de Nitrógeno ligeramente bajos."
+  },
+  "5": {
+    "datos_suelos": {
+      "humedadSuelo": 70.0,
+      "phSuelo": 6.5,
+      "salinidadSuelo": 0.8,
+      "temperaturaSuelo": 28.0,
+      "nutrientes": {
+        "nitrogeno": 85,
+        "fosforo": 48,
+        "potasio": 92,
+        "calcio": 135,
+        "magnesio": 68
+      }
+    },
+    "datos_ambiente": {
+      "temperaturaAire": 30.5,
+      "humedadAire": 88,
+      "presionAtmosferica": 1009,
+      "velocidadViento": 7,
+      "direccionViento": "NE",
+      "precipitacionHoy": 1.5,
+      "radiacionSolar": 880
+    },
+    "estadoGeneral": "Óptimo",
+    "alertaActiva": false,
+    "fecha_creacion": "2024-07-20",
+    "mensajeAlerta": "Todo en orden. Crecimiento saludable."
+  }
+}

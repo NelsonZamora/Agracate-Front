@@ -1,0 +1,52 @@
+<p>tendencias works!</p>
+<div class="tendencias-container">
+  <h1>Gráficos y Tendencias del Monitoreo</h1>
+
+  <div class="controls">
+    <label for="metric-select">Seleccionar Métrica:</label>
+    <select id="metric-select" (change)="onMetricChange($event)" [(ngModel)]="selectedMetric">
+      <optgroup label="Datos del Suelo">
+        <option value="humedadSuelo">Humedad del Suelo</option>
+        <option value="phSuelo">pH del Suelo</option>
+        <option value="salinidadSuelo">Salinidad del Suelo</option>
+        <option value="temperaturaSuelo">Temperatura del Suelo</option>
+      </optgroup>
+      <optgroup label="Niveles de Nutrientes">
+        <option value="nitrogeno">Nitrógeno</option>
+        <option value="fosforo">Fósforo</option>
+        <option value="potasio">Potasio</option>
+        <option value="calcio">Calcio</option>
+        <option value="magnesio">Magnesio</option>
+      </optgroup>
+      <optgroup label="Datos Ambientales">
+        <option value="temperaturaAire">Temperatura del Aire</option>
+        <option value="humedadAire">Humedad del Aire</option>
+        <option value="presionAtmosferica">Presión Atmosférica</option>
+        <option value="velocidadViento">Velocidad del Viento</option>
+        <option value="direccionViento">Dirección del Viento</option>
+        <option value="precipitacionHoy">Precipitación Hoy</option>
+        <option value="radiacionSolar">Radiación Solar</option>
+      </optgroup>
+    </select>
+  </div>
+
+  <div *ngIf="isLoading" class="loading-box">
+    <p>Cargando datos históricos para los gráficos...</p>
+    <div class="spinner"></div>
+  </div>
+
+  <div *ngIf="!isLoading && historicalData.length === 0" class="no-data-box">
+    <p>No hay datos históricos disponibles para generar gráficos.</p>
+  </div>
+
+  <div *ngIf="!isLoading && historicalData.length > 0 && selectedMetric !== 'direccionViento'" class="chart-container">
+    <canvas baseChart
+      [data]="lineChartData"
+      [options]="lineChartOptions"
+      [type]="lineChartType">
+    </canvas>
+  </div>
+  <div *ngIf="!isLoading && historicalData.length > 0 && selectedMetric === 'direccionViento'" class="no-chart-message">
+    <p>La dirección del viento no se puede visualizar en un gráfico de líneas. Por favor, seleccione otra métrica.</p>
+  </div>
+</div>

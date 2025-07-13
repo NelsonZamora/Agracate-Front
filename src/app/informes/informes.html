@@ -1,1 +1,95 @@
 <p>informes works!</p>
+<div class="informes-container">
+  <h1>Historial de Informes de Monitoreo</h1>
+
+  <div *ngIf="isLoading" class="cargando-box">
+    <p>Cargando lista de informes, por favor espera...</p>
+    <div class="spinner"></div>
+  </div>
+
+  <div *ngIf="!isLoading && informes.length === 0" class="info-box">
+    <p>No hay informes disponibles.</p>
+  </div>
+
+  <div *ngIf="!isLoading && informes.length > 0" class="informes-lista">
+    <table>
+      <thead>
+        <tr>
+          <th>ID Informe</th>
+          <th>Fecha</th>
+          <th>Estado General</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let informe of informes">
+          <td>Informe {{ informe.id }}</td>
+          <td>{{ informe.fecha_creacion }}</td>
+          <td [class.optimo]="informe.estadoGeneral === 'Óptimo'" [class.alerta]="informe.alertaActiva">{{ informe.estadoGeneral }}</td>
+          <td>
+            <button (click)="verDetalles(informe)" class="btn-detalles">Detalles</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div *ngIf="isModalOpen" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Detalles del Informe {{ selectedReport?.id }}</h2>
+      <button (click)="cerrarModal()" class="btn-cerrar-modal">X</button>
+    </div>
+
+    <div class="modal-body monitoreo-detalles-modal">
+      <div class="estado-general-modal">
+        <h3>Estado General del Cultivo: <span [class.optimo]="selectedReport?.estadoGeneral === 'Óptimo'" [class.alerta]="selectedReport?.alertaActiva && selectedReport?.estadoGeneral === 'Alerta'">{{ selectedReport?.estadoGeneral }}</span></h3>
+        <div *ngIf="selectedReport?.alertaActiva" class="alerta-box">
+          <p>⚠️ **Alerta:** {{ selectedReport?.mensajeAlerta }}</p>
+        </div>
+        <div *ngIf="!selectedReport?.alertaActiva" class="info-box-modal">
+          <p>{{ selectedReport?.mensajeAlerta }}</p>
+        </div>
+      </div>
+
+      <div class="seccion-datos-modal">
+        <div class="columna-datos-modal">
+            <h3>Datos del Suelo</h3>
+            <p><strong>Humedad del Suelo:</strong> {{ selectedReport?.datos_suelos?.humedadSuelo | number:'1.1-1' }}%</p>
+            <p>
+                <strong>pH del Suelo:</strong> {{ selectedReport?.datos_suelos?.phSuelo | number:'1.1-1' }}
+                <span class="ph-clasificacion">({{ getPhClasificacion(selectedReport?.datos_suelos?.phSuelo) }})</span>
+            </p>
+            <p><strong>Salinidad del Suelo (CE):</strong> {{ selectedReport?.datos_suelos?.salinidadSuelo | number:'1.1-1' }} dS/m</p>
+            <p><strong>Temperatura del Suelo:</strong> {{ selectedReport?.datos_suelos?.temperaturaSuelo | number:'1.1-1' }}°C</p>
+
+            <h4>Niveles de Nutrientes</h4>
+            <ul>
+                <li><strong>Nitrógeno (N):</strong> {{ selectedReport?.datos_suelos?.nutrientes?.nitrogeno ?? 'N/A' }} ppm</li>
+                <li><strong>Fósforo (P):</strong> {{ selectedReport?.datos_suelos?.nutrientes?.fosforo ?? 'N/A' }} ppm</li>
+                <li><strong>Potasio (K):</strong> {{ selectedReport?.datos_suelos?.nutrientes?.potasio ?? 'N/A' }} ppm</li>
+                <li><strong>Calcio (Ca):</strong> {{ selectedReport?.datos_suelos?.nutrientes?.calcio ?? 'N/A' }} ppm</li>
+                <li><strong>Magnesio (Mg):</strong> {{ selectedReport?.datos_suelos?.nutrientes?.magnesio ?? 'N/A' }} ppm</li>
+            </ul>
+        </div>
+
+        <div class="columna-datos-modal">
+            <h3>Datos Ambientales</h3>
+            <p><strong>Temperatura del Aire:</strong> {{ selectedReport?.datos_ambiente?.temperaturaAire | number:'1.1-1' }}°C</p>
+            <p><strong>Humedad Relativa del Aire:</strong> {{ selectedReport?.datos_ambiente?.humedadAire | number:'1.1-1' }}%</p>
+            <p><strong>Presión Atmosférica:</strong> {{ selectedReport?.datos_ambiente?.presionAtmosferica ?? 'N/A' }} hPa</p>
+            <p><strong>Velocidad del Viento:</strong> {{ selectedReport?.datos_ambiente?.velocidadViento ?? 'N/A' }} km/h</p>
+            <p><strong>Dirección del Viento:</strong> {{ selectedReport?.datos_ambiente?.direccionViento ?? 'N/A' }}</p>
+            <p><strong>Precipitación Hoy:</strong> {{ selectedReport?.datos_ambiente?.precipitacionHoy ?? 'N/A' }} mm</p>
+            <p><strong>Radiación Solar:</strong> {{ selectedReport?.datos_ambiente?.radiacionSolar ?? 'N/A' }} W/m²</p>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <p class="ultima-actualizacion-modal">
+        Informe generado el: {{ selectedReport?.fecha_creacion }}
+      </p>
+    </div>
+  </div>
+</div>
