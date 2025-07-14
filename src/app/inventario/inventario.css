@@ -1,0 +1,125 @@
+.inventario-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  font-family: Arial, sans-serif;
+}
+
+h1 {
+  text-align: center;
+  color: #333;
+  margin-bottom: 30px;
+}
+
+.loading-message, .error-message, .no-data-message {
+  text-align: center;
+  padding: 20px;
+  border-radius: 8px;
+  margin-top: 20px;
+}
+
+.loading-message {
+  background-color: #e0f7fa;
+  color: #00796b;
+}
+
+.error-message {
+  background-color: #ffe0b2;
+  color: #e65100;
+  border: 1px solid #e65100;
+}
+
+.no-data-message {
+  background-color: #f5f5f5;
+  color: #616161;
+}
+
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 25px;
+  justify-content: center;
+}
+
+.product-card {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  transition: transform 0.2s ease-in-out;
+}
+
+.product-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.product-image {
+  width: 100%;
+  max-height: 180px;
+  object-fit: cover;
+  border-bottom: 1px solid #eee;
+}
+
+.product-info {
+  padding: 15px;
+  flex-grow: 1; /* Permite que la información ocupe el espacio restante */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; /* Distribuye el espacio entre nombre, descripción y detalles */
+  width: 100%;
+}
+
+.product-name {
+  font-size: 1.3em;
+  color: #333;
+  margin-top: 0;
+  margin-bottom: 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.product-description {
+  font-size: 0.9em;
+  color: #666;
+  margin-bottom: 15px;
+  line-height: 1.4;
+  flex-grow: 1;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.product-details {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  font-size: 0.95em;
+  font-weight: bold;
+  color: #555;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed #eee;
+}
+
+
+.product-quantity {
+  display: block;
+  text-align: center;
+  margin-top: 0.5rem;
+  color: #007bff;
+}
+
+
+.product-price {
+  color: #28a745;
+}

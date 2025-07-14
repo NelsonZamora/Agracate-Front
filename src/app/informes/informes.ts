@@ -1,8 +1,36 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common'; // Para *ngFor, *ngIf, etc.
-import informesData from '../data/informes-data.json'; // Importa el JSON de ejemplo
+import { CommonModule } from '@angular/common';
+import { HttpClientModule, HttpClient } from '@angular/common/http'; 
+import { Observable, forkJoin } from 'rxjs'; 
+import { map, catchError } from 'rxjs/operators'; 
+import { of } from 'rxjs';
 
-// --- Interfaces para la estructura de los datos (las mismas que en MonitoreoComponent) ---
+interface ApiInformeRaw {
+  id: number;
+  FECHA_CREACION: string;
+  HUMEDAD_SUELO: string;
+  PH_SUELO: string;
+  SALINIDAD_SUELO: string;
+  TEMPERATURA_SUELO: string;
+  NITROGENO: string;
+  FOSFORO: string;
+  POTASIO: string;
+  CALCIO: string;
+  MAGNESIO: string;
+  TEMPERATURA_AIRE: string;
+  HUMEDAD_RELATIVA: string;
+  PRESION_ATMOSFERICA: string;
+  VELOCIDAD_VIENTO: string;
+  DIRECCION_VIENTO: string;
+  PRECIPITACION: string;
+  ESTADO: string;
+  DETALLE: string;
+  informeDetalleID: number;
+  created_at: string;
+  updated_at: string;
+}
+
+
 interface NutrientesData {
   nitrogeno: number | null;
   fosforo: number | null;
@@ -29,7 +57,7 @@ interface DatosAmbienteData {
   radiacionSolar: number | null;
 }
 
-// Interfaz para la estructura de un reporte de detalle (lo que se muestra en el modal)
+
 interface ReporteDetalleData {
   datos_suelos: DatosSuelosData;
   datos_ambiente: DatosAmbienteData;
@@ -38,52 +66,91 @@ interface ReporteDetalleData {
   mensajeAlerta: string;
 }
 
-// Interfaz para un elemento de informe en la lista (incluye el ID y la fecha de creación)
-interface InformeReporte extends ReporteDetalleData {
-  id: string; // Usamos string porque las claves del JSON son strings ("1", "2")
-  fecha_creacion: string; // Formato "YYYY-MM-DD" o "DD-MM-YYYY" como en tu ejemplo
-}
 
-// Interfaz para la estructura del JSON importado
-interface InformesJson {
-  [key: string]: ReporteDetalleData & { fecha_creacion: string };
+interface InformeReporte extends ReporteDetalleData {
+  id: string; 
+  fecha_creacion: string;
 }
 
 @Component({
   selector: 'app-informes',
-  imports: [CommonModule],
+  standalone: true,
+  imports: [CommonModule, HttpClientModule],
   templateUrl: './informes.html',
   styleUrl: './informes.css'
 })
 export class Informes implements OnInit {
 
-  informes: InformeReporte[] = []; // Lista de informes para mostrar en la tabla
-  selectedReport: InformeReporte | null = null; // El informe seleccionado para el modal
-  isModalOpen: boolean = false; // Controla la visibilidad del modal
+  informes: InformeReporte[] = [];
+  selectedReport: InformeReporte | null = null; 
+  isModalOpen: boolean = false; 
+  isLoading: boolean = false; 
+  private apiUrl = 'http://127.0.0.1:8000/api/informe'; 
 
-  isLoading: boolean = false; // Para mostrar un estado de carga en la lista
-
-  constructor() { }
+  constructor(private http: HttpClient) { } 
 
   ngOnInit(): void {
     this.cargarInformes();
   }
 
+  
+  private mapEstado(estadoApi: string): { estadoGeneral: string, alertaActiva: boolean, mensajeAlerta: string } {
+    switch (estadoApi) {
+      case '1': return { estadoGeneral: 'Óptimo', alertaActiva: false, mensajeAlerta: 'No se han detectado alertas significativas.' };
+      case '2': return { estadoGeneral: 'Alerta', alertaActiva: true, mensajeAlerta: '¡Alerta: Revisa los parámetros del cultivo!' };
+      case '3': return { estadoGeneral: 'Advertencia', alertaActiva: true, mensajeAlerta: 'Advertencia: Parámetros fuera del rango ideal.' };
+      case '4': return { estadoGeneral: 'Crítico', alertaActiva: true, mensajeAlerta: '¡Crítico: Requiere atención inmediata!' };
+      default: return { estadoGeneral: 'Desconocido', alertaActiva: false, mensajeAlerta: 'Estado desconocido.' };
+    }
+  }
+
   cargarInformes(): void {
     this.isLoading = true;
-    // Simular una llamada a API
-    setTimeout(() => {
-      const data: InformesJson = informesData; // Acceder a los datos importados
-
-      // Convertir el objeto JSON en un array de InformeReporte
-      this.informes = Object.keys(data).map(key => ({
-        id: key, // Asignar la clave como el ID del informe
-        ...data[key] // Copiar todas las propiedades del objeto de informe
-      }));
-
+    this.http.get<ApiInformeRaw[]>(this.apiUrl).pipe(
+      map(data => data.map(apiReport => {
+        const estadoInfo = this.mapEstado(apiReport.ESTADO);
+        
+        return {
+          id: apiReport.id.toString(), 
+          fecha_creacion: apiReport.FECHA_CREACION.split(' ')[0], 
+          datos_suelos: {
+            humedadSuelo: parseFloat(apiReport.HUMEDAD_SUELO),
+            phSuelo: parseFloat(apiReport.PH_SUELO),
+            salinidadSuelo: parseFloat(apiReport.SALINIDAD_SUELO),
+            temperaturaSuelo: parseFloat(apiReport.TEMPERATURA_SUELO),
+            nutrientes: {
+              nitrogeno: parseFloat(apiReport.NITROGENO),
+              fosforo: parseFloat(apiReport.FOSFORO),
+              potasio: parseFloat(apiReport.POTASIO),
+              calcio: parseFloat(apiReport.CALCIO),
+              magnesio: parseFloat(apiReport.MAGNESIO)
+            }
+          },
+          datos_ambiente: {
+            temperaturaAire: parseFloat(apiReport.TEMPERATURA_AIRE),
+            humedadAire: parseFloat(apiReport.HUMEDAD_RELATIVA), 
+            presionAtmosferica: parseFloat(apiReport.PRESION_ATMOSFERICA),
+            velocidadViento: parseFloat(apiReport.VELOCIDAD_VIENTO),
+            direccionViento: apiReport.DIRECCION_VIENTO, 
+            precipitacionHoy: parseFloat(apiReport.PRECIPITACION),
+            radiacionSolar: null 
+          },
+          estadoGeneral: estadoInfo.estadoGeneral,
+          alertaActiva: estadoInfo.alertaActiva,
+          mensajeAlerta: estadoInfo.mensajeAlerta
+        } as InformeReporte; 
+      })),
+      catchError(error => {
+        console.error('Error al cargar informes:', error);
+        this.isLoading = false;
+        
+        return of([]); 
+      })
+    ).subscribe(informes => {
+      this.informes = informes;
       this.isLoading = false;
-      console.log('Informes cargados:', this.informes);
-    }, 1500); // Simula 1.5 segundos de carga
+      console.log('Informes cargados desde API:', this.informes);
+    });
   }
 
   verDetalles(informe: InformeReporte): void {
@@ -93,13 +160,11 @@ export class Informes implements OnInit {
 
   cerrarModal(): void {
     this.isModalOpen = false;
-    this.selectedReport = null; // Limpiar el informe seleccionado al cerrar
+    this.selectedReport = null;
   }
 
-  // Método de ayuda para clasificar el pH
-  // ¡CORRECCIÓN AQUÍ! Ahora acepta 'undefined' como posible valor.
   getPhClasificacion(ph: number | null | undefined): string {
-    if (ph === null || ph === undefined) return 'N/A'; // Maneja tanto null como undefined
+    if (ph === null || ph === undefined) return 'N/A';
     if (ph < 5.5) return 'Muy Ácido';
     if (ph >= 5.5 && ph <= 6.5) return 'Ligeramente Ácido a Neutro (Ideal para Aguacate)';
     if (ph > 6.5 && ph <= 7.5) return 'Neutro a Ligeramente Alcalino';

@@ -1,1 +1,29 @@
-<p>inventario works!</p>
+<div class="inventario-container">
+  <h1>Inventario de Artículos</h1>
+
+  <div *ngIf="isLoading" class="loading-message">
+    Cargando productos...
+  </div>
+
+  <div *ngIf="errorMessage" class="error-message">
+    {{ errorMessage }}
+  </div>
+
+  <div *ngIf="!isLoading && productos.length === 0 && !errorMessage" class="no-data-message">
+    No hay productos disponibles.
+  </div>
+
+  <div class="product-grid" *ngIf="!isLoading && productos.length > 0">
+    <div class="product-card" *ngFor="let producto of productos">
+      <img [src]="getImagenUrl(producto.URL_IMAGEN)" alt="{{ producto.NOMBRE }}" class="product-image">
+      <div class="product-info">
+        <h2 class="product-name">{{ producto.NOMBRE }}</h2>
+        <p class="product-description">{{ producto.DESCRIPCION || 'Sin descripción.' }}</p>
+        <div class="product-details">
+          <span class="product-quantity text-center">Cantidad: {{ producto.CANTIDAD }}</span>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

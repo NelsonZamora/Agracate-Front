@@ -1,11 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { BaseChartDirective } from 'ng2-charts';
-import { ChartConfiguration, ChartOptions } from 'chart.js';
+import { HttpClientModule, HttpClient } from '@angular/common/http'; 
 import { FormsModule } from '@angular/forms';
-import informesData from '../data/informes-data.json';
+import { BaseChartDirective } from 'ng2-charts';
+import { ChartConfiguration, ChartOptions, ScaleOptionsByType } from 'chart.js';
+import { map, catchError } from 'rxjs/operators';
+import { of } from 'rxjs';
 
-// ✅ Registro de componentes de Chart.js
+
 import {
   Chart,
   LineController,
@@ -29,7 +31,33 @@ Chart.register(
   Legend
 );
 
-// Interfaces
+
+interface ApiInformeRaw {
+  id: number;
+  FECHA_CREACION: string;
+  HUMEDAD_SUELO: string;
+  PH_SUELO: string;
+  SALINIDAD_SUELO: string;
+  TEMPERATURA_SUELO: string;
+  NITROGENO: string;
+  FOSFORO: string;
+  POTASIO: string;
+  CALCIO: string;
+  MAGNESIO: string;
+  TEMPERATURA_AIRE: string;
+  HUMEDAD_RELATIVA: string;
+  PRESION_ATMOSFERICA: string;
+  VELOCIDAD_VIENTO: string;
+  DIRECCION_VIENTO: string;
+  PRECIPITACION: string;
+  ESTADO: string;
+  DETALLE: string;
+  informeDetalleID: number;
+  created_at: string;
+  updated_at: string;
+}
+
+
 interface NutrientesData {
   nitrogeno: number | null;
   fosforo: number | null;
@@ -53,7 +81,7 @@ interface DatosAmbienteData {
   velocidadViento: number | null;
   direccionViento: string | null;
   precipitacionHoy: number | null;
-  radiacionSolar: number | null;
+  radiacionSolar: number | null; 
 }
 
 interface ReporteDetalleData {
@@ -69,14 +97,10 @@ interface InformeReporte extends ReporteDetalleData {
   fecha_creacion: string;
 }
 
-interface InformesJson {
-  [key: string]: ReporteDetalleData & { fecha_creacion: string };
-}
-
 @Component({
   selector: 'app-tendencias',
   standalone: true,
-  imports: [CommonModule, FormsModule, BaseChartDirective],
+  imports: [CommonModule, FormsModule, BaseChartDirective, HttpClientModule], 
   templateUrl: './tendencias.html',
   styleUrl: './tendencias.css'
 })
@@ -104,7 +128,6 @@ export class Tendencias implements OnInit {
     { value: 'radiacionSolar', label: 'Radiación Solar', unit: 'W/m²', category: 'ambiente' }
   ];
 
-  // ✅ Tipo literal para evitar error del template
   public lineChartType: 'line' = 'line';
 
   public lineChartData: ChartConfiguration<'line'>['data'] = {
@@ -136,7 +159,7 @@ export class Tendencias implements OnInit {
     },
     scales: {
       y: {
-        type: 'linear', // ✅ agregado para que funcione la escala
+        type: 'linear',
         beginAtZero: false,
         title: {
           display: true,
@@ -152,24 +175,72 @@ export class Tendencias implements OnInit {
     }
   };
 
-  constructor() { }
+  private apiUrl = 'http://127.0.0.1:8000/api/informe';
+
+  constructor(private http: HttpClient) { } 
 
   ngOnInit(): void {
     this.loadHistoricalData();
   }
 
+
+  private mapEstado(estadoApi: string): { estadoGeneral: string, alertaActiva: boolean, mensajeAlerta: string } {
+    switch (estadoApi) {
+      case '1': return { estadoGeneral: 'Óptimo', alertaActiva: false, mensajeAlerta: 'No se han detectado alertas significativas.' };
+      case '2': return { estadoGeneral: 'Alerta', alertaActiva: true, mensajeAlerta: '¡Alerta: Revisa los parámetros del cultivo!' };
+      case '3': return { estadoGeneral: 'Advertencia', alertaActiva: true, mensajeAlerta: 'Advertencia: Parámetros fuera del rango ideal.' };
+      case '4': return { estadoGeneral: 'Crítico', alertaActiva: true, mensajeAlerta: '¡Crítico: Requiere atención inmediata!' };
+      default: return { estadoGeneral: 'Desconocido', alertaActiva: false, mensajeAlerta: 'Estado desconocido.' };
+    }
+  }
+
   loadHistoricalData(): void {
     this.isLoading = true;
-    setTimeout(() => {
-      const data: InformesJson = informesData;
-      this.historicalData = Object.keys(data).map(key => ({
-        id: key,
-        ...data[key]
-      })).sort((a, b) => new Date(a.fecha_creacion).getTime() - new Date(b.fecha_creacion).getTime());
+    this.http.get<ApiInformeRaw[]>(this.apiUrl).pipe(
+      map(data => data.map(apiReport => {
+        const estadoInfo = this.mapEstado(apiReport.ESTADO);
 
-      this.updateChart();
+        return {
+          id: apiReport.id.toString(),
+          fecha_creacion: apiReport.FECHA_CREACION.split(' ')[0], 
+          datos_suelos: {
+            humedadSuelo: parseFloat(apiReport.HUMEDAD_SUELO),
+            phSuelo: parseFloat(apiReport.PH_SUELO),
+            salinidadSuelo: parseFloat(apiReport.SALINIDAD_SUELO),
+            temperaturaSuelo: parseFloat(apiReport.TEMPERATURA_SUELO),
+            nutrientes: {
+              nitrogeno: parseFloat(apiReport.NITROGENO),
+              fosforo: parseFloat(apiReport.FOSFORO),
+              potasio: parseFloat(apiReport.POTASIO),
+              calcio: parseFloat(apiReport.CALCIO),
+              magnesio: parseFloat(apiReport.MAGNESIO)
+            }
+          },
+          datos_ambiente: {
+            temperaturaAire: parseFloat(apiReport.TEMPERATURA_AIRE),
+            humedadAire: parseFloat(apiReport.HUMEDAD_RELATIVA),
+            presionAtmosferica: parseFloat(apiReport.PRESION_ATMOSFERICA),
+            velocidadViento: parseFloat(apiReport.VELOCIDAD_VIENTO),
+            direccionViento: apiReport.DIRECCION_VIENTO,
+            precipitacionHoy: parseFloat(apiReport.PRECIPITACION),
+            radiacionSolar: null 
+          },
+          estadoGeneral: estadoInfo.estadoGeneral,
+          alertaActiva: estadoInfo.alertaActiva,
+          mensajeAlerta: estadoInfo.mensajeAlerta
+        } as InformeReporte;
+      }).sort((a, b) => new Date(a.fecha_creacion).getTime() - new Date(b.fecha_creacion).getTime())), 
+      catchError(error => {
+        console.error('Error al cargar datos históricos:', error);
+        this.isLoading = false;
+        return of([]);
+      })
+    ).subscribe(reports => {
+      this.historicalData = reports;
+      this.updateChart(); 
       this.isLoading = false;
-    }, 1500);
+      console.log('Datos históricos cargados desde API:', this.historicalData);
+    });
   }
 
   onMetricChange(event: Event): void {
@@ -197,7 +268,11 @@ export class Tendencias implements OnInit {
     if (category === 'suelo') {
       values = this.historicalData.map(report => report.datos_suelos[this.selectedMetric as keyof DatosSuelosData] as number | null);
     } else if (category === 'ambiente') {
-      values = this.historicalData.map(report => report.datos_ambiente[this.selectedMetric as keyof DatosAmbienteData] as number | null | string);
+      
+      values = this.historicalData.map(report => {
+        const value = report.datos_ambiente[this.selectedMetric as keyof DatosAmbienteData];
+        return typeof value === 'string' ? value : (value as number | null);
+      });
     } else if (category === 'nutrientes') {
       values = this.historicalData.map(report => report.datos_suelos.nutrientes[this.selectedMetric as keyof NutrientesData] as number | null);
     }
@@ -218,17 +293,19 @@ export class Tendencias implements OnInit {
     };
 
     if (this.lineChartOptions.scales && this.lineChartOptions.scales['y']) {
-      this.lineChartOptions.scales['y'].title!.text = `${label} (${unit})`;
+      
+      const yTitle = this.lineChartOptions.scales['y'].title;
+      if (yTitle) {
+        yTitle.text = `${label} (${unit})`;
+      }
       this.lineChartOptions.scales['y'].display = (this.selectedMetric !== 'direccionViento');
     }
 
-    // ✅ Ajustar beginAtZero
-    const yScale = this.lineChartOptions.scales?.['y'];
-    if (yScale && yScale.type === 'linear') {
-      yScale.beginAtZero = this.selectedMetric !== 'phSuelo';
+    const yScale = this.lineChartOptions.scales?.['y'] as ScaleOptionsByType<'linear'>;
+    if (yScale) {
+        yScale.beginAtZero = this.selectedMetric !== 'phSuelo';
     }
 
-    // Forzar actualización
     this.lineChartData = { ...this.lineChartData };
     this.lineChartOptions = { ...this.lineChartOptions };
   }
